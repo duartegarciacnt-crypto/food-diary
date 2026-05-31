@@ -135,10 +135,9 @@
 
         .week-nav {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            justify-content: center;
             gap: 10px;
+            margin-bottom: 20px;
         }
 
         .nav-btn {
@@ -156,17 +155,9 @@
             background: #45a049;
         }
 
-        .week-info {
-            text-align: center;
-            flex-grow: 1;
-            font-size: 14px;
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
         .weeks-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
         }
 
@@ -184,7 +175,7 @@
         }
 
         .week h2 {
-            font-size: 13px;
+            font-size: 12px;
             margin-bottom: 10px;
             color: #2c3e50;
             font-weight: 600;
@@ -196,14 +187,14 @@
             background: #f9f9f9;
             border-radius: 6px;
             border-left: 3px solid #4CAF50;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .day-header {
             font-weight: 600;
             color: #2c3e50;
             margin-bottom: 6px;
-            font-size: 11px;
+            font-size: 10px;
         }
 
         .meals {
@@ -215,18 +206,18 @@
             padding: 5px 8px;
             border-radius: 3px;
             margin-bottom: 4px;
-            font-size: 11px;
+            font-size: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .meal-type {
             font-weight: 600;
             color: #2e7d32;
-            min-width: 70px;
-            font-size: 10px;
+            min-width: 50px;
+            font-size: 9px;
         }
 
         .meal-food {
@@ -238,9 +229,9 @@
             background: #f44336;
             color: white;
             border: none;
-            padding: 2px 4px;
+            padding: 1px 3px;
             border-radius: 2px;
-            font-size: 10px;
+            font-size: 9px;
             cursor: pointer;
             flex-shrink: 0;
         }
@@ -252,24 +243,24 @@
         .add-meal-form {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
 
         .meal-inputs {
             display: flex;
-            gap: 4px;
+            gap: 3px;
         }
 
         select, input {
-            padding: 4px;
+            padding: 3px;
             border: 1px solid #ddd;
             border-radius: 3px;
-            font-size: 11px;
+            font-size: 10px;
             font-family: inherit;
         }
 
         select {
-            flex: 0 0 80px;
+            flex: 0 0 50px;
         }
 
         input {
@@ -280,9 +271,9 @@
             background: #4CAF50;
             color: white;
             border: none;
-            padding: 4px 8px;
+            padding: 3px 6px;
             border-radius: 3px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             cursor: pointer;
         }
@@ -363,10 +354,16 @@
             color: #333;
         }
 
+        .food-meal-type {
+            color: #2e7d32;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 0 10px;
+        }
+
         .food-date {
             color: #999;
             font-size: 12px;
-            margin-left: 10px;
         }
 
         @media (max-width: 1200px) {
@@ -401,7 +398,7 @@
         <div id="planner" class="tab-content active">
             <div class="week-nav">
                 <button class="nav-btn" onclick="prevWeek()">← Anterior</button>
-                <div class="week-info" id="weekInfo"></div>
+                <button class="nav-btn" onclick="currentWeek()">Hoje</button>
                 <button class="nav-btn" onclick="nextWeek()">Próxima →</button>
             </div>
             <div class="weeks-container" id="weeksContainer"></div>
@@ -422,6 +419,7 @@
 
         const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
         const mealTypes = ['Pequeno-almoço', 'Almoço', 'Lanche da tarde', 'Jantar'];
+        const foodTypes = ['Fruta', 'Legume', 'Carne', 'Peixe', 'Arroz/Massa', 'Pão', 'Lacticínios', 'Outro'];
 
         let currentWeekOffset = 0;
 
@@ -475,57 +473,70 @@
             loadPlanner();
         }
 
+        function currentWeek() {
+            currentWeekOffset = 0;
+            loadPlanner();
+        }
+
         async function loadPlanner() {
             const today = new Date();
-            const startOfWeek = new Date(today);
-            startOfWeek.setDate(today.getDate() - today.getDay());
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - today.getDay() + 1);
+            const startOfWeek = new Date(monday);
             startOfWeek.setDate(startOfWeek.getDate() + currentWeekOffset * 7);
 
             const container = document.getElementById('weeksContainer');
             container.innerHTML = '';
 
-            const weekStart = new Date(startOfWeek);
-            const weekEnd = new Date(startOfWeek);
-            weekEnd.setDate(weekEnd.getDate() + 6);
+            // Create 3 weeks
+            for (let week = 0; week < 3; week++) {
+                const weekDiv = document.createElement('div');
+                const weekStart = new Date(startOfWeek);
+                weekStart.setDate(weekStart.getDate() + week * 7);
 
-            document.getElementById('weekInfo').textContent =
-                `${weekStart.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}`;
+                const isCurrentWeek = currentWeekOffset === 0 && week === 0;
+                weekDiv.className = `week ${isCurrentWeek ? 'current' : ''}`;
 
-            // Single week view
-            const weekDiv = document.createElement('div');
-            const isCurrentWeek = currentWeekOffset === 0;
-            weekDiv.className = `week ${isCurrentWeek ? 'current' : ''}`;
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+                const weekTitle = `${weekStart.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}`;
+                weekDiv.innerHTML = `<h2>${weekTitle}</h2>`;
 
-            // Create 7 days
-            for (let day = 0; day < 7; day++) {
-                const currentDate = new Date(startOfWeek);
-                currentDate.setDate(currentDate.getDate() + day);
-                const dateStr = currentDate.toISOString().split('T')[0];
-                const dayName = dayNames[currentDate.getDay()];
-                const dayDate = currentDate.toLocaleDateString('pt-PT', { day: 'numeric' });
+                // Create 7 days (Monday to Sunday)
+                for (let day = 0; day < 7; day++) {
+                    const currentDate = new Date(weekStart);
+                    currentDate.setDate(currentDate.getDate() + day);
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    const dayName = dayNames[currentDate.getDay()];
+                    const dayDate = currentDate.toLocaleDateString('pt-PT', { day: 'numeric' });
 
-                const dayDiv = document.createElement('div');
-                dayDiv.className = 'day';
-                dayDiv.innerHTML = `
-                    <div class="day-header">${dayName} ${dayDate}</div>
-                    <div class="meals" id="meals-${dateStr}"></div>
-                    <div class="add-meal-form">
-                        <div class="meal-inputs">
-                            <select id="meal-type-${dateStr}">
-                                <option value="">Tipo</option>
-                                ${mealTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
-                            </select>
-                            <input type="text" id="meal-food-${dateStr}" placeholder="Alimento" maxlength="40">
-                            <button class="add-btn" onclick="addMeal('${dateStr}')">+</button>
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'day';
+                    dayDiv.innerHTML = `
+                        <div class="day-header">${dayName} ${dayDate}</div>
+                        <div class="meals" id="meals-${dateStr}"></div>
+                        <div class="add-meal-form">
+                            <div class="meal-inputs">
+                                <select id="meal-type-${dateStr}">
+                                    <option value="">Ref</option>
+                                    ${mealTypes.map(t => `<option value="${t}">${t.substring(0, 3)}</option>`).join('')}
+                                </select>
+                                <select id="food-type-${dateStr}">
+                                    <option value="">Tipo</option>
+                                    ${foodTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
+                                </select>
+                                <input type="text" id="meal-food-${dateStr}" placeholder="Alimento" maxlength="30">
+                                <button class="add-btn" onclick="addMeal('${dateStr}')">+</button>
+                            </div>
                         </div>
-                    </div>
-                `;
+                    `;
 
-                weekDiv.appendChild(dayDiv);
-                loadMeals(dateStr);
+                    weekDiv.appendChild(dayDiv);
+                    loadMeals(dateStr);
+                }
+
+                container.appendChild(weekDiv);
             }
-
-            container.appendChild(weekDiv);
         }
 
         async function loadMeals(dateStr) {
@@ -563,10 +574,11 @@
 
         async function addMeal(dateStr) {
             const typeEl = document.getElementById(`meal-type-${dateStr}`);
+            const foodTypeEl = document.getElementById(`food-type-${dateStr}`);
             const foodEl = document.getElementById(`meal-food-${dateStr}`);
 
-            if (!typeEl.value || !foodEl.value) {
-                showMessage('Preencha tipo e alimento', 'error');
+            if (!typeEl.value || !foodTypeEl.value || !foodEl.value) {
+                showMessage('Preencha refeição, tipo e alimento', 'error');
                 return;
             }
 
@@ -574,11 +586,13 @@
                 await supabaseClient.from('food_entries').insert([{
                     date: dateStr,
                     meal_type: typeEl.value,
-                    food_items: foodEl.value
+                    food_items: foodEl.value,
+                    food_type: foodTypeEl.value
                 }]);
 
                 showMessage('✓ Refeição adicionada', 'success');
                 typeEl.value = '';
+                foodTypeEl.value = '';
                 foodEl.value = '';
                 loadMeals(dateStr);
                 loadFoods();
@@ -611,25 +625,28 @@
 
                 const grouped = {};
                 (data || []).forEach(meal => {
-                    if (!grouped[meal.meal_type]) grouped[meal.meal_type] = [];
-                    grouped[meal.meal_type].push(meal);
+                    const foodType = meal.food_type || 'Outro';
+                    if (!grouped[foodType]) grouped[foodType] = [];
+                    grouped[foodType].push(meal);
                 });
 
                 const container = document.getElementById('foodsList');
-                container.innerHTML = mealTypes.map(type => {
+                container.innerHTML = foodTypes.map(type => {
                     const items = grouped[type] || [];
+                    if (items.length === 0) return '';
                     return `
                         <div class="food-group">
                             <div class="food-group-title">${type}</div>
                             ${items.map(item => `
                                 <div class="food-item">
                                     <span class="food-name">${item.food_items}</span>
+                                    <span class="food-meal-type">${item.meal_type.substring(0, 3)}</span>
                                     <span class="food-date">${new Date(item.created_at).toLocaleDateString('pt-PT')}</span>
                                 </div>
                             `).join('')}
                         </div>
                     `;
-                }).join('');
+                }).filter(x => x).join('');
             } catch (error) {
                 console.error('Error:', error);
             }
