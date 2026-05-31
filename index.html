@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diário de Alimentação</title>
+    <title>Planeador de Refeições</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -66,31 +66,22 @@
             background: #45a049;
         }
 
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        .app-container {
+            display: none;
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         h1 {
-            font-size: 24px;
-            color: #2c3e50;
-            margin: 0;
-        }
-
-        h2 {
-            font-size: 18px;
-            margin-bottom: 15px;
+            font-size: 28px;
             color: #2c3e50;
         }
 
@@ -98,7 +89,7 @@
             background: #666;
             color: white;
             border: none;
-            padding: 8px 12px;
+            padding: 10px 16px;
             border-radius: 6px;
             font-size: 14px;
             cursor: pointer;
@@ -108,202 +99,176 @@
             background: #555;
         }
 
-        .tabs {
-            display: flex;
-            gap: 10px;
+        .weeks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .week {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .week h2 {
+            font-size: 18px;
             margin-bottom: 20px;
-            border-bottom: 2px solid #f0f0f0;
+            color: #2c3e50;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
         }
 
-        .tab-btn {
-            background: none;
-            border: none;
-            padding: 12px 20px;
-            font-size: 16px;
+        .day {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .day-header {
             font-weight: 600;
-            color: #999;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .tab-btn.active {
-            color: #4CAF50;
-            border-bottom-color: #4CAF50;
-        }
-
-        .tab-btn:hover {
-            color: #666;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
+            color: #2c3e50;
+            margin-bottom: 10px;
             font-size: 14px;
-            font-weight: 500;
+        }
+
+        .meals {
+            margin-bottom: 10px;
+        }
+
+        .meal {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
             margin-bottom: 6px;
+            font-size: 13px;
             color: #555;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
+        .meal-type {
+            font-weight: 500;
+            color: #2e7d32;
+            min-width: 80px;
+        }
+
+        .meal-food {
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+
+        .delete-meal {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .delete-meal:hover {
+            background: #da190b;
+        }
+
+        .add-meal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .meal-inputs {
+            display: flex;
+            gap: 6px;
+        }
+
+        select, input {
+            padding: 6px;
             border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
+            border-radius: 4px;
+            font-size: 12px;
             font-family: inherit;
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 80px;
+        select {
+            flex: 0 0 100px;
         }
 
-        button {
-            width: 100%;
-            padding: 12px;
+        input {
+            flex: 1;
+        }
+
+        .add-btn {
             background: #4CAF50;
             color: white;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
         }
 
-        button:hover {
+        .add-btn:hover {
             background: #45a049;
         }
 
-        button:disabled {
+        .add-btn:disabled {
             background: #ccc;
             cursor: not-allowed;
         }
 
-        .summary {
-            background: #e8f5e9;
-            border-left: 4px solid #4CAF50;
-            padding: 15px;
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
             border-radius: 6px;
-            margin-bottom: 30px;
-        }
-
-        .summary-title {
-            font-weight: 600;
-            color: #2e7d32;
-            margin-bottom: 10px;
-        }
-
-        .summary-item {
             font-size: 14px;
-            color: #555;
-            margin-bottom: 8px;
-            padding: 8px;
-            background: white;
-            border-radius: 4px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
         }
 
-        .summary-item strong {
-            color: #2e7d32;
-        }
-
-        .entries {
-            margin-top: 20px;
-        }
-
-        .entry {
-            background: #f9f9f9;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            border-left: 4px solid #4CAF50;
-        }
-
-        .entry-date {
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 14px;
-        }
-
-        .entry-meal {
-            display: inline-block;
+        .message.success {
             background: #e8f5e9;
             color: #2e7d32;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-top: 4px;
         }
 
-        .entry-food {
-            color: #555;
-            font-size: 14px;
-            margin-top: 6px;
-        }
-
-        .entry-notes {
-            color: #888;
-            font-size: 13px;
-            font-style: italic;
-            margin-top: 6px;
-        }
-
-        .entry-delete {
-            background: #f44336;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-top: 8px;
-        }
-
-        .entry-delete:hover {
-            background: #da190b;
-        }
-
-        .error {
+        .message.error {
             background: #ffebee;
             color: #c62828;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
         }
 
-        .success {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
-        .loading {
-            text-align: center;
-            color: #999;
-            font-size: 14px;
-            padding: 20px;
+        @media (max-width: 1200px) {
+            .weeks-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="loginContainer" class="login-container" style="display:none;">
+    <div id="loginContainer" class="login-container">
         <div class="login-box">
-            <h1>🍽️ Diário de Alimentação</h1>
+            <h1>🍽️ Planeador de Refeições</h1>
             <form id="loginForm">
                 <input type="password" id="password" placeholder="Palavra-passe" required autofocus>
                 <button type="submit">Entrar</button>
@@ -311,56 +276,13 @@
         </div>
     </div>
 
-    <div id="appContainer" class="container" style="display:none;">
+    <div id="appContainer" class="app-container">
         <div class="header">
-            <h1>📝 Diário de Alimentação</h1>
+            <h1>🍽️ Planeador de Refeições</h1>
             <button class="logout-btn" onclick="logout()">Sair</button>
         </div>
 
-        <div id="message"></div>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('today')">Hoje</button>
-            <button class="tab-btn" onclick="switchTab('history')">Histórico</button>
-        </div>
-
-        <div id="today" class="tab-content active">
-            <form id="foodForm">
-                <div class="form-group">
-                    <label for="mealType">Tipo de Refeição</label>
-                    <select id="mealType" required>
-                        <option value="">Seleccione...</option>
-                        <option value="Pequeno-almoço">Pequeno-almoço</option>
-                        <option value="Almoço">Almoço</option>
-                        <option value="Lanche da tarde">Lanche da tarde</option>
-                        <option value="Jantar">Jantar</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="foodItems">Alimentos</label>
-                    <textarea id="foodItems" placeholder="Ex: 2 fatias de pão, maçã, água" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="notes">Observações (opcional)</label>
-                    <textarea id="notes" placeholder="Alergias, reacções, etc."></textarea>
-                </div>
-
-                <button type="submit">Adicionar Entrada</button>
-            </form>
-
-            <div class="entries" id="todayEntries" style="margin-top: 30px;">
-                <h2>Entradas de Hoje</h2>
-                <div id="todayEntriesList" class="loading">Carregando...</div>
-            </div>
-        </div>
-
-        <div id="history" class="tab-content">
-            <div class="entries">
-                <div id="historyEntriesList" class="loading">Carregando...</div>
-            </div>
-        </div>
+        <div id="weeksContainer" class="weeks-container"></div>
     </div>
 
     <script>
@@ -370,6 +292,9 @@
 
         const { createClient } = window.supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        const mealTypes = ['Pequeno-almoço', 'Almoço', 'Lanche da tarde', 'Jantar'];
 
         // Handle login
         document.getElementById('loginForm').addEventListener('submit', (e) => {
@@ -388,15 +313,12 @@
         // Check login on load
         if (localStorage.getItem('foodDiaryLoggedIn') === 'true') {
             showApp();
-        } else {
-            document.getElementById('loginContainer').style.display = 'flex';
         }
 
         function showApp() {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
-            loadTodayEntries();
-            loadHistoryEntries();
+            loadPlanner();
         }
 
         function logout() {
@@ -407,123 +329,141 @@
             document.getElementById('password').focus();
         }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab).classList.add('active');
-            event.target.classList.add('active');
+        async function loadPlanner() {
+            const container = document.getElementById('weeksContainer');
+            container.innerHTML = '';
+
+            // Create 3 weeks
+            for (let week = 0; week < 3; week++) {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'week';
+
+                const weekStart = new Date();
+                weekStart.setDate(weekStart.getDate() + week * 7);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 6);
+
+                const weekTitle = `Semana de ${weekStart.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })} a ${weekEnd.toLocaleDateString('pt-PT', { day: 'numeric', month: 'short' })}`;
+                weekDiv.innerHTML = `<h2>${weekTitle}</h2>`;
+
+                // Create 7 days
+                for (let day = 0; day < 7; day++) {
+                    const currentDate = new Date();
+                    currentDate.setDate(currentDate.getDate() + week * 7 + day);
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    const dayName = dayNames[currentDate.getDay()];
+                    const dayDate = currentDate.toLocaleDateString('pt-PT', { day: 'numeric', month: 'numeric' });
+
+                    const dayDiv = document.createElement('div');
+                    dayDiv.className = 'day';
+                    dayDiv.innerHTML = `
+                        <div class="day-header">${dayName} - ${dayDate}</div>
+                        <div class="meals" id="meals-${dateStr}"></div>
+                        <div class="add-meal-form">
+                            <div class="meal-inputs">
+                                <select id="meal-type-${dateStr}">
+                                    <option value="">Tipo</option>
+                                    ${mealTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
+                                </select>
+                                <input type="text" id="meal-food-${dateStr}" placeholder="Alimento" maxlength="50">
+                                <button class="add-btn" onclick="addMeal('${dateStr}')">+</button>
+                            </div>
+                        </div>
+                    `;
+
+                    weekDiv.appendChild(dayDiv);
+                }
+
+                container.appendChild(weekDiv);
+
+                // Load meals for this week
+                for (let day = 0; day < 7; day++) {
+                    const currentDate = new Date();
+                    currentDate.setDate(currentDate.getDate() + week * 7 + day);
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    loadMeals(dateStr);
+                }
+            }
         }
 
-        document.getElementById('foodForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const today = new Date().toISOString().split('T')[0];
-            const mealType = document.getElementById('mealType').value;
-            const foodItems = document.getElementById('foodItems').value;
-            const notes = document.getElementById('notes').value;
-
-            const button = e.target.querySelector('button');
-            button.disabled = true;
-
+        async function loadMeals(dateStr) {
             try {
                 const { data, error } = await supabaseClient
                     .from('food_entries')
-                    .insert([{ date: today, meal_type: mealType, food_items: foodItems, notes: notes || null }])
-                    .select();
+                    .select('*')
+                    .eq('date', dateStr)
+                    .order('created_at', { ascending: true });
 
                 if (error) throw error;
 
-                showMessage('✓ Entrada adicionada!', 'success');
-                document.getElementById('foodForm').reset();
-                loadTodayEntries();
+                const mealsDiv = document.getElementById(`meals-${dateStr}`);
+                if (!mealsDiv) return;
+
+                mealsDiv.innerHTML = (data || []).map(meal => `
+                    <div class="meal">
+                        <div class="meal-type">${meal.meal_type}</div>
+                        <div class="meal-food">${meal.food_items}</div>
+                        <button class="delete-meal" onclick="deleteMeal(${meal.id}, '${dateStr}')">×</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function addMeal(dateStr) {
+            const typeEl = document.getElementById(`meal-type-${dateStr}`);
+            const foodEl = document.getElementById(`meal-food-${dateStr}`);
+
+            if (!typeEl.value || !foodEl.value) {
+                showMessage('Preencha tipo e alimento', 'error');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('food_entries')
+                    .insert([{
+                        date: dateStr,
+                        meal_type: typeEl.value,
+                        food_items: foodEl.value
+                    }]);
+
+                if (error) throw error;
+
+                showMessage('✓ Refeição adicionada', 'success');
+                typeEl.value = '';
+                foodEl.value = '';
+                loadMeals(dateStr);
             } catch (error) {
                 showMessage('Erro: ' + error.message, 'error');
-            } finally {
-                button.disabled = false;
-            }
-        });
-
-        async function loadTodayEntries() {
-            try {
-                const today = new Date().toISOString().split('T')[0];
-                const { data, error } = await supabaseClient
-                    .from('food_entries')
-                    .select('*')
-                    .eq('date', today)
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                const entriesList = document.getElementById('todayEntriesList');
-
-                if (!data || data.length === 0) {
-                    entriesList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Sem entradas para hoje</p>';
-                    return;
-                }
-
-                entriesList.innerHTML = data.map(entry => `
-                    <div class="entry">
-                        <div class="entry-meal">${entry.meal_type}</div>
-                        <div class="entry-food">${entry.food_items}</div>
-                        ${entry.notes ? `<div class="entry-notes">${entry.notes}</div>` : ''}
-                        <button class="entry-delete" onclick="deleteEntry(${entry.id})">Eliminar</button>
-                    </div>
-                `).join('');
-            } catch (error) {
-                document.getElementById('todayEntriesList').innerHTML = `<div class="error">Erro: ${error.message}</div>`;
             }
         }
 
-        async function loadHistoryEntries() {
+        async function deleteMeal(id, dateStr) {
+            if (!confirm('Eliminar?')) return;
+
             try {
-                const { data, error } = await supabaseClient
+                const { error } = await supabaseClient
                     .from('food_entries')
-                    .select('*')
-                    .order('date', { ascending: false })
-                    .limit(30);
+                    .delete()
+                    .eq('id', id);
 
                 if (error) throw error;
 
-                const entriesList = document.getElementById('historyEntriesList');
-
-                if (!data || data.length === 0) {
-                    entriesList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Sem histórico</p>';
-                    return;
-                }
-
-                entriesList.innerHTML = data.map(entry => `
-                    <div class="entry">
-                        <div class="entry-date">${new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-PT')}</div>
-                        <div class="entry-meal">${entry.meal_type}</div>
-                        <div class="entry-food">${entry.food_items}</div>
-                        ${entry.notes ? `<div class="entry-notes">${entry.notes}</div>` : ''}
-                        <button class="entry-delete" onclick="deleteEntry(${entry.id})">Eliminar</button>
-                    </div>
-                `).join('');
-            } catch (error) {
-                document.getElementById('historyEntriesList').innerHTML = `<div class="error">Erro: ${error.message}</div>`;
-            }
-        }
-
-async function deleteEntry(id) {
-            if (!confirm('Tem a certeza que deseja eliminar?')) return;
-
-            try {
-                const { error } = await supabaseClient.from('food_entries').delete().eq('id', id);
-                if (error) throw error;
-
-                showMessage('✓ Entrada eliminada', 'success');
-                loadTodayEntries();
-                loadHistoryEntries();
+                showMessage('✓ Refeição eliminada', 'success');
+                loadMeals(dateStr);
             } catch (error) {
                 showMessage('Erro: ' + error.message, 'error');
             }
         }
 
         function showMessage(text, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
-            setTimeout(() => { messageDiv.innerHTML = ''; }, 3000);
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+            msg.textContent = text;
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 3000);
         }
     </script>
 </body>
