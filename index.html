@@ -197,11 +197,72 @@
             font-size: 14px;
             padding: 20px;
         }
+
+        #loginForm {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #loginForm input {
+            padding: 12px;
+            font-size: 16px;
+        }
+
+        #loginForm button {
+            padding: 12px;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .logout-btn {
+            margin-top: 20px;
+            background: #666;
+            font-size: 14px;
+            padding: 8px;
+        }
+
+        .logout-btn:hover {
+            background: #555;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📝 Diário de Alimentação</h1>
+    <div id="loginContainer" class="login-container">
+        <div class="login-box">
+            <h1>🍽️ Diário de Alimentação</h1>
+            <form id="loginForm">
+                <input type="password" id="password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="appContainer" class="container" style="display:none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1>📝 Diário de Alimentação</h1>
+            <button class="logout-btn" onclick="logout()">Sair</button>
+        </div>
 
         <div id="message"></div>
 
@@ -244,22 +305,63 @@
             <h2>Entradas Recentes</h2>
             <div id="entriesList" class="loading">Carregando entradas...</div>
         </div>
+        </div>
     </div>
 
     <script>
         const SUPABASE_URL = 'https://pbsugryqanetdeywqsjl.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_eANZaX060S7rDnJOXQEUmA_4DOfouQk';
+        const PASSWORD = 'amelia';
 
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Set today's date as default
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('date').value = today;
+        // Check if user is logged in on page load
+        window.addEventListener('load', () => {
+            if (localStorage.getItem('foodDiaryLoggedIn') === 'true') {
+                showApp();
+            } else {
+                showLogin();
+            }
+        });
 
-        // Load on page load
-        loadEntries();
-        loadSummary();
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const pwd = document.getElementById('password').value;
+
+            if (pwd === PASSWORD) {
+                localStorage.setItem('foodDiaryLoggedIn', 'true');
+                showApp();
+            } else {
+                alert('Senha incorreta');
+                document.getElementById('password').value = '';
+            }
+        });
+
+        function showLogin() {
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('appContainer').style.display = 'none';
+        }
+
+        function showApp() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('appContainer').style.display = 'block';
+
+            // Set today's date as default
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+
+            // Load entries and summary
+            loadEntries();
+            loadSummary();
+        }
+
+        function logout() {
+            localStorage.removeItem('foodDiaryLoggedIn');
+            showLogin();
+            document.getElementById('loginForm').reset();
+        }
 
         // Form submission
         document.getElementById('foodForm').addEventListener('submit', async (e) => {
