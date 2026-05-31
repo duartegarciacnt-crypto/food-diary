@@ -316,19 +316,11 @@
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Check if user is logged in on page load
-        window.addEventListener('load', () => {
-            if (localStorage.getItem('foodDiaryLoggedIn') === 'true') {
-                showApp();
-            } else {
-                showLogin();
-            }
-        });
-
         // Login form handler
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const pwd = document.getElementById('password').value;
+            console.log('Password entered:', pwd, 'Expected:', PASSWORD);
 
             if (pwd === PASSWORD) {
                 localStorage.setItem('foodDiaryLoggedIn', 'true');
@@ -338,6 +330,13 @@
                 document.getElementById('password').value = '';
             }
         });
+
+        // Check if user is logged in on page load
+        if (localStorage.getItem('foodDiaryLoggedIn') === 'true') {
+            showApp();
+        } else {
+            showLogin();
+        }
 
         function showLogin() {
             document.getElementById('loginContainer').style.display = 'flex';
