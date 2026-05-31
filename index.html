@@ -357,13 +357,7 @@
         </div>
 
         <div id="history" class="tab-content">
-            <div id="summary" class="summary">
-                <div class="summary-title">📊 Últimos 7 dias</div>
-                <div id="summaryContent"></div>
-            </div>
-
             <div class="entries">
-                <h2>Histórico</h2>
                 <div id="historyEntriesList" class="loading">Carregando...</div>
             </div>
         </div>
@@ -403,7 +397,6 @@
             document.getElementById('appContainer').style.display = 'block';
             loadTodayEntries();
             loadHistoryEntries();
-            loadSummary();
         }
 
         function logout() {
@@ -443,7 +436,6 @@
                 showMessage('✓ Entrada adicionada!', 'success');
                 document.getElementById('foodForm').reset();
                 loadTodayEntries();
-                loadSummary();
             } catch (error) {
                 showMessage('Erro: ' + error.message, 'error');
             } finally {
@@ -513,48 +505,7 @@
             }
         }
 
-        async function loadSummary() {
-            try {
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-                const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
-
-                const { data, error } = await supabaseClient
-                    .from('food_entries')
-                    .select('*')
-                    .gte('date', sevenDaysAgoStr)
-                    .order('date', { ascending: false });
-
-                if (error) throw error;
-
-                if (!data || data.length === 0) {
-                    document.getElementById('summary').style.display = 'none';
-                    return;
-                }
-
-                document.getElementById('summary').style.display = 'block';
-
-                const grouped = {};
-                data.forEach(entry => {
-                    if (!grouped[entry.date]) grouped[entry.date] = [];
-                    grouped[entry.date].push(entry);
-                });
-
-                const summaryHTML = Object.entries(grouped)
-                    .map(([date, entries]) => {
-                        const dateObj = new Date(date + 'T00:00:00');
-                        const dateStr = dateObj.toLocaleDateString('pt-PT', { weekday: 'short', month: 'short', day: 'numeric' });
-                        return `<div class="summary-item"><strong>${dateStr}</strong> - ${entries.length} refeição(ões): ${entries.map(e => e.meal_type).join(', ')}</div>`;
-                    })
-                    .join('');
-
-                document.getElementById('summaryContent').innerHTML = summaryHTML;
-            } catch (error) {
-                console.error('Error:', error);
-            }
-        }
-
-        async function deleteEntry(id) {
+async function deleteEntry(id) {
             if (!confirm('Tem a certeza que deseja eliminar?')) return;
 
             try {
@@ -564,7 +515,6 @@
                 showMessage('✓ Entrada eliminada', 'success');
                 loadTodayEntries();
                 loadHistoryEntries();
-                loadSummary();
             } catch (error) {
                 showMessage('Erro: ' + error.message, 'error');
             }
