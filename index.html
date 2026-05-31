@@ -265,6 +265,7 @@
 
         input {
             flex: 1;
+            min-width: 0;
         }
 
         .add-btn {
@@ -404,6 +405,8 @@
             <div class="weeks-container" id="weeksContainer"></div>
         </div>
 
+        <datalist id="foodTypeOptions"></datalist>
+
         <div id="foods" class="tab-content">
             <div class="foods-list" id="foodsList"></div>
         </div>
@@ -419,7 +422,7 @@
 
         const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
         const mealTypes = ['Pequeno-almoço', 'Almoço', 'Lanche da tarde', 'Jantar'];
-        const foodTypes = ['Fruta', 'Legume', 'Carne', 'Peixe', 'Arroz/Massa', 'Pão', 'Lacticínios', 'Outro'];
+        let knownFoodTypes = [];
 
         let currentWeekOffset = 0;
 
@@ -440,11 +443,34 @@
             showApp();
         }
 
-        function showApp() {
+        async function showApp() {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
+            await loadKnownFoodTypes();
             loadPlanner();
             loadFoods();
+        }
+
+        async function loadKnownFoodTypes() {
+            try {
+                const { data } = await supabaseClient
+                    .from('food_entries')
+                    .select('food_type')
+                    .not('food_type', 'is', null);
+
+                const unique = [...new Set((data || []).map(d => d.food_type).filter(Boolean))].sort();
+                knownFoodTypes = unique;
+                updateFoodTypeDatalist();
+            } catch (error) {
+                console.error('Error loading food types:', error);
+            }
+        }
+
+        function updateFoodTypeDatalist() {
+            const datalist = document.getElementById('foodTypeOptions');
+            if (datalist) {
+                datalist.innerHTML = knownFoodTypes.map(t => `<option value="${t}">`).join('');
+            }
         }
 
         function logout() {
@@ -521,10 +547,7 @@
                                     <option value="">Ref</option>
                                     ${mealTypes.map(t => `<option value="${t}">${t.substring(0, 3)}</option>`).join('')}
                                 </select>
-                                <select id="food-type-${dateStr}">
-                                    <option value="">Tipo</option>
-                                    ${foodTypes.map(t => `<option value="${t}">${t}</option>`).join('')}
-                                </select>
+                                <input type="text" id="food-type-${dateStr}" placeholder="Tipo" list="foodTypeOptions" maxlength="30">
                                 <input type="text" id="meal-food-${dateStr}" placeholder="Alimento" maxlength="30">
                                 <button class="add-btn" onclick="addMeal('${dateStr}')">+</button>
                             </div>
@@ -591,6 +614,11 @@
                 }]);
 
                 showMessage('✓ Refeição adicionada', 'success');
+                if (foodTypeEl.value && !knownFoodTypes.includes(foodTypeEl.value)) {
+                    knownFoodTypes.push(foodTypeEl.value);
+                    knownFoodTypes.sort();
+                    updateFoodTypeDatalist();
+                }
                 typeEl.value = '';
                 foodTypeEl.value = '';
                 foodEl.value = '';
@@ -631,22 +659,19 @@
                 });
 
                 const container = document.getElementById('foodsList');
-                container.innerHTML = foodTypes.map(type => {
-                    const items = grouped[type] || [];
-                    if (items.length === 0) return '';
-                    return `
-                        <div class="food-group">
-                            <div class="food-group-title">${type}</div>
-                            ${items.map(item => `
-                                <div class="food-item">
-                                    <span class="food-name">${item.food_items}</span>
-                                    <span class="food-meal-type">${item.meal_type.substring(0, 3)}</span>
-                                    <span class="food-date">${new Date(item.created_at).toLocaleDateString('pt-PT')}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                }).filter(x => x).join('');
+                const allTypes = Object.keys(grouped).sort();
+                container.innerHTML = allTypes.map(type => `
+                    <div class="food-group">
+                        <div class="food-group-title">${type}</div>
+                        ${grouped[type].map(item => `
+                            <div class="food-item">
+                                <span class="food-name">${item.food_items}</span>
+                                <span class="food-meal-type">${item.meal_type.substring(0, 3)}</span>
+                                <span class="food-date">${new Date(item.created_at).toLocaleDateString('pt-PT')}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `).join('');
             } catch (error) {
                 console.error('Error:', error);
             }
