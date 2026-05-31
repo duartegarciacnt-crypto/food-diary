@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Food Diary</title>
+    <title>Diário de Alimentação</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -31,6 +31,12 @@
         h1 {
             font-size: 24px;
             margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
             color: #2c3e50;
         }
 
@@ -82,16 +88,37 @@
             cursor: not-allowed;
         }
 
+        .summary {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .summary-item {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .summary-item strong {
+            color: #2e7d32;
+        }
+
         .entries {
             margin-top: 30px;
             border-top: 2px solid #f0f0f0;
             padding-top: 20px;
-        }
-
-        .entries h2 {
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #2c3e50;
         }
 
         .entry {
@@ -174,60 +201,65 @@
 </head>
 <body>
     <div class="container">
-        <h1>📝 Food Diary</h1>
+        <h1>📝 Diário de Alimentação</h1>
 
         <div id="message"></div>
 
+        <div id="summary" class="summary" style="display:none;">
+            <div class="summary-title">📊 Últimos 7 dias</div>
+            <div id="summaryContent"></div>
+        </div>
+
         <form id="foodForm">
             <div class="form-group">
-                <label for="date">Date</label>
+                <label for="date">Data</label>
                 <input type="date" id="date" required>
             </div>
 
             <div class="form-group">
-                <label for="mealType">Meal Type</label>
+                <label for="mealType">Tipo de Refeição</label>
                 <select id="mealType" required>
-                    <option value="">Select meal...</option>
-                    <option value="Breakfast">Breakfast</option>
-                    <option value="Lunch">Lunch</option>
-                    <option value="Dinner">Dinner</option>
-                    <option value="Snack">Snack</option>
+                    <option value="">Selecione...</option>
+                    <option value="Café da manhã">Café da manhã</option>
+                    <option value="Almoço">Almoço</option>
+                    <option value="Jantar">Jantar</option>
+                    <option value="Lanche">Lanche</option>
                 </select>
             </div>
 
             <div class="form-group">
-                <label for="foodItems">Food Items</label>
-                <textarea id="foodItems" placeholder="e.g., 2 slices of bread, apple, water" required></textarea>
+                <label for="foodItems">Alimentos</label>
+                <textarea id="foodItems" placeholder="Ex: 2 fatias de pão, maçã, água" required></textarea>
             </div>
 
             <div class="form-group">
-                <label for="notes">Notes (optional)</label>
-                <textarea id="notes" placeholder="Any notes about allergies, reactions, etc."></textarea>
+                <label for="notes">Observações (opcional)</label>
+                <textarea id="notes" placeholder="Alergias, reações, etc."></textarea>
             </div>
 
-            <button type="submit">Add Entry</button>
+            <button type="submit">Adicionar Entrada</button>
         </form>
 
         <div class="entries">
-            <h2>Recent Entries</h2>
-            <div id="entriesList" class="loading">Loading entries...</div>
+            <h2>Entradas Recentes</h2>
+            <div id="entriesList" class="loading">Carregando entradas...</div>
         </div>
     </div>
 
     <script>
-        // CONFIGURE YOUR SUPABASE CREDENTIALS HERE
         const SUPABASE_URL = 'https://pbsugryqanetdeywqsjl.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_eANZaX060S7rDnJOXQEUmA_4DOfouQk';
 
-        // Initialize Supabase
         const { createClient } = window.supabase;
         const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // Set today's date as default
-        document.getElementById('date').valueAsDate = new Date();
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').value = today;
 
-        // Load entries on page load
+        // Load on page load
         loadEntries();
+        loadSummary();
 
         // Form submission
         document.getElementById('foodForm').addEventListener('submit', async (e) => {
@@ -256,16 +288,62 @@
 
                 if (error) throw error;
 
-                showMessage('Entry added! ✓', 'success');
+                showMessage('✓ Entrada adicionada!', 'success');
                 document.getElementById('foodForm').reset();
-                document.getElementById('date').valueAsDate = new Date();
+                document.getElementById('date').value = today;
                 loadEntries();
+                loadSummary();
             } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
+                console.error('Error:', error);
+                showMessage('Erro: ' + error.message, 'error');
             } finally {
                 button.disabled = false;
             }
         });
+
+        async function loadSummary() {
+            try {
+                const sevenDaysAgo = new Date();
+                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
+                const { data, error } = await supabase
+                    .from('food_entries')
+                    .select('*')
+                    .gte('date', sevenDaysAgoStr)
+                    .order('date', { ascending: false });
+
+                if (error) throw error;
+
+                if (!data || data.length === 0) {
+                    document.getElementById('summary').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('summary').style.display = 'block';
+
+                // Group by date
+                const grouped = {};
+                data.forEach(entry => {
+                    if (!grouped[entry.date]) grouped[entry.date] = [];
+                    grouped[entry.date].push(entry);
+                });
+
+                const summaryHTML = Object.entries(grouped)
+                    .map(([date, entries]) => {
+                        const dateObj = new Date(date + 'T00:00:00');
+                        const dateStr = dateObj.toLocaleDateString('pt-BR', { weekday: 'short', month: 'short', day: 'numeric' });
+                        const mealCount = entries.length;
+                        const meals = entries.map(e => e.meal_type).join(', ');
+                        return `<div class="summary-item"><strong>${dateStr}</strong> - ${mealCount} refeição(ões): ${meals}</div>`;
+                    })
+                    .join('');
+
+                document.getElementById('summaryContent').innerHTML = summaryHTML;
+            } catch (error) {
+                console.error('Error loading summary:', error);
+            }
+        }
 
         async function loadEntries() {
             try {
@@ -280,26 +358,27 @@
                 const entriesList = document.getElementById('entriesList');
 
                 if (!data || data.length === 0) {
-                    entriesList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">No entries yet</p>';
+                    entriesList.innerHTML = '<p style="color: #999; text-align: center; padding: 20px;">Nenhuma entrada ainda</p>';
                     return;
                 }
 
                 entriesList.innerHTML = data.map(entry => `
                     <div class="entry">
-                        <div class="entry-date">${new Date(entry.date).toLocaleDateString()}</div>
+                        <div class="entry-date">${new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR')}</div>
                         <div class="entry-meal">${entry.meal_type}</div>
                         <div class="entry-food">${entry.food_items}</div>
                         ${entry.notes ? `<div class="entry-notes">${entry.notes}</div>` : ''}
-                        <button class="entry-delete" onclick="deleteEntry(${entry.id})">Delete</button>
+                        <button class="entry-delete" onclick="deleteEntry(${entry.id})">Deletar</button>
                     </div>
                 `).join('');
             } catch (error) {
-                document.getElementById('entriesList').innerHTML = `<div class="error">Error loading entries: ${error.message}</div>`;
+                console.error('Error:', error);
+                document.getElementById('entriesList').innerHTML = `<div class="error">Erro ao carregar entradas: ${error.message}</div>`;
             }
         }
 
         async function deleteEntry(id) {
-            if (!confirm('Delete this entry?')) return;
+            if (!confirm('Deletar esta entrada?')) return;
 
             try {
                 const { error } = await supabase
@@ -309,10 +388,11 @@
 
                 if (error) throw error;
 
-                showMessage('Entry deleted', 'success');
+                showMessage('✓ Entrada deletada', 'success');
                 loadEntries();
+                loadSummary();
             } catch (error) {
-                showMessage('Error deleting: ' + error.message, 'error');
+                showMessage('Erro ao deletar: ' + error.message, 'error');
             }
         }
 
