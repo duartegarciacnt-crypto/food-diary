@@ -19,6 +19,53 @@
             color: #333;
         }
 
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-box h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .login-box button:hover {
+            background: #45a049;
+        }
+
         .container {
             max-width: 500px;
             margin: 0 auto;
@@ -28,16 +75,37 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         h1 {
             font-size: 24px;
-            margin-bottom: 20px;
             color: #2c3e50;
+            margin: 0;
         }
 
         h2 {
             font-size: 18px;
             margin-bottom: 15px;
             color: #2c3e50;
+        }
+
+        .logout-btn {
+            background: #666;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .logout-btn:hover {
+            background: #555;
         }
 
         .form-group {
@@ -76,7 +144,6 @@
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
         button:hover {
@@ -197,69 +264,21 @@
             font-size: 14px;
             padding: 20px;
         }
-
-        #loginForm {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        #loginForm input {
-            padding: 12px;
-            font-size: 16px;
-        }
-
-        #loginForm button {
-            padding: 12px;
-        }
-
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .login-box h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
-        }
-
-        .logout-btn {
-            margin-top: 20px;
-            background: #666;
-            font-size: 14px;
-            padding: 8px;
-        }
-
-        .logout-btn:hover {
-            background: #555;
-        }
     </style>
 </head>
 <body>
-    <div id="loginContainer" class="login-container">
+    <div id="loginContainer" class="login-container" style="display:none;">
         <div class="login-box">
             <h1>🍽️ Diário de Alimentação</h1>
             <form id="loginForm">
-                <input type="password" id="password" placeholder="Senha" required>
+                <input type="password" id="password" placeholder="Senha" required autofocus>
                 <button type="submit">Entrar</button>
             </form>
         </div>
     </div>
 
     <div id="appContainer" class="container" style="display:none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="header">
             <h1>📝 Diário de Alimentação</h1>
             <button class="logout-btn" onclick="logout()">Sair</button>
         </div>
@@ -305,7 +324,6 @@
             <h2>Entradas Recentes</h2>
             <div id="entriesList" class="loading">Carregando entradas...</div>
         </div>
-        </div>
     </div>
 
     <script>
@@ -314,13 +332,12 @@
         const PASSWORD = 'amelia';
 
         const { createClient } = window.supabase;
-        const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Login form handler
+        // Handle login
         document.getElementById('loginForm').addEventListener('submit', (e) => {
             e.preventDefault();
             const pwd = document.getElementById('password').value;
-            console.log('Password entered:', pwd, 'Expected:', PASSWORD);
 
             if (pwd === PASSWORD) {
                 localStorage.setItem('foodDiaryLoggedIn', 'true');
@@ -331,38 +348,32 @@
             }
         });
 
-        // Check if user is logged in on page load
+        // Check login on load
         if (localStorage.getItem('foodDiaryLoggedIn') === 'true') {
             showApp();
         } else {
-            showLogin();
-        }
-
-        function showLogin() {
             document.getElementById('loginContainer').style.display = 'flex';
-            document.getElementById('appContainer').style.display = 'none';
         }
 
         function showApp() {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('appContainer').style.display = 'block';
 
-            // Set today's date as default
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
 
-            // Load entries and summary
             loadEntries();
             loadSummary();
         }
 
         function logout() {
             localStorage.removeItem('foodDiaryLoggedIn');
-            showLogin();
+            document.getElementById('appContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'flex';
             document.getElementById('loginForm').reset();
+            document.getElementById('password').focus();
         }
 
-        // Form submission
         document.getElementById('foodForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
@@ -375,27 +386,19 @@
             button.disabled = true;
 
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('food_entries')
-                    .insert([
-                        {
-                            date,
-                            meal_type: mealType,
-                            food_items: foodItems,
-                            notes: notes || null
-                        }
-                    ])
+                    .insert([{ date, meal_type: mealType, food_items: foodItems, notes: notes || null }])
                     .select();
 
                 if (error) throw error;
 
                 showMessage('✓ Entrada adicionada!', 'success');
                 document.getElementById('foodForm').reset();
-                document.getElementById('date').value = today;
+                document.getElementById('date').value = new Date().toISOString().split('T')[0];
                 loadEntries();
                 loadSummary();
             } catch (error) {
-                console.error('Error:', error);
                 showMessage('Erro: ' + error.message, 'error');
             } finally {
                 button.disabled = false;
@@ -408,7 +411,7 @@
                 sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
                 const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
 
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('food_entries')
                     .select('*')
                     .gte('date', sevenDaysAgoStr)
@@ -423,7 +426,6 @@
 
                 document.getElementById('summary').style.display = 'block';
 
-                // Group by date
                 const grouped = {};
                 data.forEach(entry => {
                     if (!grouped[entry.date]) grouped[entry.date] = [];
@@ -434,21 +436,19 @@
                     .map(([date, entries]) => {
                         const dateObj = new Date(date + 'T00:00:00');
                         const dateStr = dateObj.toLocaleDateString('pt-BR', { weekday: 'short', month: 'short', day: 'numeric' });
-                        const mealCount = entries.length;
-                        const meals = entries.map(e => e.meal_type).join(', ');
-                        return `<div class="summary-item"><strong>${dateStr}</strong> - ${mealCount} refeição(ões): ${meals}</div>`;
+                        return `<div class="summary-item"><strong>${dateStr}</strong> - ${entries.length} refeição(ões): ${entries.map(e => e.meal_type).join(', ')}</div>`;
                     })
                     .join('');
 
                 document.getElementById('summaryContent').innerHTML = summaryHTML;
             } catch (error) {
-                console.error('Error loading summary:', error);
+                console.error('Error:', error);
             }
         }
 
         async function loadEntries() {
             try {
-                const { data, error } = await supabase
+                const { data, error } = await supabaseClient
                     .from('food_entries')
                     .select('*')
                     .order('date', { ascending: false })
@@ -473,8 +473,7 @@
                     </div>
                 `).join('');
             } catch (error) {
-                console.error('Error:', error);
-                document.getElementById('entriesList').innerHTML = `<div class="error">Erro ao carregar entradas: ${error.message}</div>`;
+                document.getElementById('entriesList').innerHTML = `<div class="error">Erro: ${error.message}</div>`;
             }
         }
 
@@ -482,27 +481,21 @@
             if (!confirm('Deletar esta entrada?')) return;
 
             try {
-                const { error } = await supabase
-                    .from('food_entries')
-                    .delete()
-                    .eq('id', id);
-
+                const { error } = await supabaseClient.from('food_entries').delete().eq('id', id);
                 if (error) throw error;
 
                 showMessage('✓ Entrada deletada', 'success');
                 loadEntries();
                 loadSummary();
             } catch (error) {
-                showMessage('Erro ao deletar: ' + error.message, 'error');
+                showMessage('Erro: ' + error.message, 'error');
             }
         }
 
         function showMessage(text, type) {
             const messageDiv = document.getElementById('message');
             messageDiv.innerHTML = `<div class="${type}">${text}</div>`;
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 3000);
+            setTimeout(() => { messageDiv.innerHTML = ''; }, 3000);
         }
     </script>
 </body>
